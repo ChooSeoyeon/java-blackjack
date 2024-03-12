@@ -179,3 +179,15 @@
 - ace 취급
     - (전제) 합이 22보다 크면 ace를 11로 계산했던 걸 1로 취급해서 10을 빼자 -> 합이 21보다 크면 ace는 1로 계산됨
     - (반전) 합이 21보다 작으면 ace를 1로 계산했던 걸 11로 취급해서 10을 더하자 -> 합이 21보다 작거나 같으면 ace는 11로 계산됨
+
+## 강의
+
+- draw(Card card)
+- stand()
+- cards()
+- calculateProfit(Money money)
+
+- blackjack <- 상태에 따라 결정됨
+- bust <- 상태에 따라 결정됨
+
+BlackjackGame
