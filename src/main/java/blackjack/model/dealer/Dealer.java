@@ -2,6 +2,7 @@ package blackjack.model.dealer;
 
 import blackjack.model.card.Card;
 import blackjack.model.card.Cards;
+import blackjack.model.card.InitialCardPair;
 import blackjack.model.cardgenerator.CardGenerator;
 import java.util.List;
 
@@ -11,30 +12,34 @@ public class Dealer {
 
     private final Cards cards;
 
-    public Dealer(final CardGenerator cardGenerator) {
-        this.cards = new Cards(cardGenerator);
+    public Dealer() {
+        this.cards = new Cards();
+    }
+
+    public void dealCards(final InitialCardPair initialCardPair) {
+        this.cards.addCards(initialCardPair.getCards());
     }
 
     public void drawCards(final CardGenerator cardGenerator) {
         while (canDrawCard()) {
-            cards.drawCard(cardGenerator);
+            cards.addCard(cardGenerator.pick());
         }
     }
 
     private boolean canDrawCard() {
-        return cards.canDrawCardWithinScoreLimit(MAX_DRAWABLE_SCORE);
+        return cards.canAddCardWithinScoreLimit(MAX_DRAWABLE_SCORE);
     }
 
     public int calculateCardsTotalScore() {
-        return cards.calculateTotalScore();
-    }
-
-    public boolean isBust() {
-        return cards.isBust();
+        return cards.calculateScore();
     }
 
     public boolean isBlackJack() {
         return cards.isBlackJack();
+    }
+
+    public boolean isBust() {
+        return cards.isBust();
     }
 
     public int getDrawCount() {

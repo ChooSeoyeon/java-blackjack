@@ -1,6 +1,5 @@
 package blackjack.model.card;
 
-import blackjack.model.cardgenerator.CardGenerator;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,23 +14,23 @@ public class Cards {
         this.cards = new ArrayList<>(cards);
     }
 
-    public Cards(final CardGenerator cardGenerator) {
-        this.cards = new ArrayList<>(deal(cardGenerator));
+    public Cards() {
+        this.cards = new ArrayList<>();
     }
 
-    private List<Card> deal(final CardGenerator cardGenerator) {
-        return List.of(cardGenerator.pick(), cardGenerator.pick());
+    public void addCards(final List<Card> cards) {
+        this.cards.addAll(cards);
     }
 
-    public void drawCard(final CardGenerator cardGenerator) {
-        cards.add(cardGenerator.pick());
-    }
-    
-    public boolean canDrawCardWithinScoreLimit(int maxDrawableScore) {
-        return calculateTotalScore() <= maxDrawableScore;
+    public void addCard(final Card card) {
+        cards.add(card);
     }
 
-    public int calculateTotalScore() {
+    public boolean canAddCardWithinScoreLimit(int maxScoreThreshold) {
+        return calculateScore() <= maxScoreThreshold;
+    }
+
+    public int calculateScore() {
         int total = cards.stream()
                 .map(Card::getDenomination)
                 .mapToInt(Denomination::getScore)
@@ -56,11 +55,11 @@ public class Cards {
     }
 
     public boolean isBlackJack() {
-        return calculateTotalScore() == BLACKJACK_SCORE && cards.size() == BLACKJACK_CARD_SIZE;
+        return calculateScore() == BLACKJACK_SCORE && cards.size() == BLACKJACK_CARD_SIZE;
     }
 
     public boolean isBust() {
-        return calculateTotalScore() > BLACKJACK_SCORE;
+        return calculateScore() > BLACKJACK_SCORE;
     }
 
     public int size() {

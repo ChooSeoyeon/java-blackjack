@@ -1,5 +1,6 @@
 package blackjack.controller;
 
+import blackjack.model.card.InitialCardPair;
 import blackjack.model.cardgenerator.CardGenerator;
 import blackjack.model.cardgenerator.RandomCardGenerator;
 import blackjack.model.dealer.Dealer;
@@ -26,65 +27,82 @@ public class BlackjackGame {
 
     public void play() {
         CardGenerator cardGenerator = new RandomCardGenerator();
-        Players players = retryOnException(() -> preparePlayers(cardGenerator));
-        Dealer dealer = new Dealer(cardGenerator);
+        Players players = retryOnException(this::preparePlayers);
+        Dealer dealer = new Dealer();
 
         dealCards(players, dealer, cardGenerator);
         drawCards(players, dealer, cardGenerator);
         showResult(players, dealer);
     }
 
-    private Players preparePlayers(final CardGenerator cardGenerator) {
+    private Players preparePlayers() {
         List<String> playerNames = inputView.askPlayerNames();
-        return new Players(playerNames, cardGenerator);
+        return Players.from(playerNames);
     }
 
     private void dealCards(final Players players, final Dealer dealer, final CardGenerator cardGenerator) {
-        // TODO: deal 로직 분리
-        outputView.printDealingCards(players, dealer);
+        outputView.printDealCardsIntro(players.getNames());
+        dealCardsToPlayers(players, cardGenerator);
+        dealCardsToDealer(dealer, cardGenerator);
+    }
+
+    private void dealCardsToPlayers(final Players players, final CardGenerator cardGenerator) {
+        for (Player player : players.getPlayers()) {
+            player.dealCards(InitialCardPair.of(cardGenerator));
+            outputView.printPlayerCards(player.getName(), player.getCards());
+        }
+    }
+
+    private void dealCardsToDealer(final Dealer dealer, CardGenerator cardGenerator) {
+        dealer.dealCards(InitialCardPair.of(cardGenerator));
+        outputView.printDealerFirstCard(dealer.getFirstCard());
     }
 
     private void drawCards(final Players players, final Dealer dealer, final CardGenerator cardGenerator) {
         if (isGameEnd(dealer, players)) {
             return;
         }
-        for (Player player : players.getPlayers()) {
-            drawPlayerCards(player, cardGenerator);
-        }
-        drawDealerCards(dealer, cardGenerator);
+        drawCardsToPlayers(players, cardGenerator);
+        drawCardsToDealer(dealer, cardGenerator);
     }
 
     private boolean isGameEnd(final Dealer dealer, final Players players) {
         return dealer.isBlackJack() || players.isAllBlackJack();
     }
 
-    private void drawPlayerCards(final Player player, final CardGenerator cardGenerator) {
-        boolean isContinue = player.canDrawCard();
-        while (isContinue) {
-            isContinue = drawPlayerCard(player, cardGenerator);
+    private void drawCardsToPlayers(final Players players, final CardGenerator cardGenerator) {
+        for (Player player : players.getPlayers()) {
+            drawCardsToPlayer(player, cardGenerator);
         }
     }
 
-    private boolean drawPlayerCard(final Player player, final CardGenerator cardGenerator) {
+    private void drawCardsToPlayer(final Player player, final CardGenerator cardGenerator) {
+        boolean isContinue = player.canDrawCard();
+        while (isContinue) {
+            isContinue = drawCardToPlayer(player, cardGenerator);
+        }
+    }
+
+    private boolean drawCardToPlayer(final Player player, final CardGenerator cardGenerator) {
         Command command = retryOnException(() -> inputView.askPlayerDrawOrStandCommand(player.getName()));
         if (command.isDraw()) {
             player.drawCard(cardGenerator);
-            outputView.printPlayerDrawingCards(player);
+            outputView.printPlayerCards(player.getName(), player.getCards());
         }
         return player.canDrawCard() && command.isDraw();
     }
 
-    private void drawDealerCards(final Dealer dealer, final CardGenerator cardGenerator) {
+    private void drawCardsToDealer(final Dealer dealer, final CardGenerator cardGenerator) {
         dealer.drawCards(cardGenerator);
-        outputView.printDealerDrawingCards(dealer);
+        outputView.printDealerDrawCount(dealer.getDrawCount());
     }
 
     private void showResult(final Players players, final Dealer dealer) {
-        showCardsOutcome(players, dealer);
+        showFinalCardsOutcome(players, dealer);
         showMatchResult(players, dealer);
     }
 
-    private void showCardsOutcome(final Players players, final Dealer dealer) {
+    private void showFinalCardsOutcome(final Players players, final Dealer dealer) {
         DealerFinalCardsOutcome dealerFinalCardsOutcome = DealerFinalCardsOutcome.of(dealer);
         List<PlayerFinalCardsOutcome> playerFinalCardsOutcomes = players.captureFinalCardsOutcomes();
         outputView.printDealerFinalCards(dealerFinalCardsOutcome);
